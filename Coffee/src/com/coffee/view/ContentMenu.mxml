@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="560" height="653"
+		 xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.collections.ArrayCollection;
+			
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			
+			/**			存放所有效果方法的类的对象			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			/**			存放要执行出现和隐藏的大层的集合				*/
+			public var _groupList:ArrayCollection = new ArrayCollection();
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			/**			页面内容创建完毕，加载设置其他。。。		*/
+			public function loaded():void{
+				// 将要执行出现效果的层，放到集合中
+				this._groupList.addItem(this.groTopText);
+				this._groupList.addItem(this.groDianXin);
+				this._groupList.addItem(this.groCake);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<!--		右上角的层			-->
+	<s:Group width="325" x="235">
+		<!--		标题菜单栏下面的上述文字			-->
+		<s:Group id="groTopText" width="325">
+			<!--		上述文字		-->
+			<mx:Image source="swf/coffeedou.swf"  x="0" y="57"/>			
+			<mx:Image source="images/ourmenu.png" x="21" y="47" />
+			<!--			菜单项目DataGridView		-->
+			<s:Group x="3" y="118">
+				<!--		DataGridView			-->
+				<view:DataGridView id="dgvMenu" />
+				<!--		效果按钮		-->
+				<view:AnimateButton y="286" x="-8" displayText=" view more " click="{Main.showDataGridViewMenu('Menu-view more');}" />
+			</s:Group>
+		</s:Group>
+		
+	</s:Group>
+		
+	<!--		最下面的层			-->
+	<s:Group width="100%" height="216" y="437">
+		<!--		点心图片层			-->
+		<s:Group id="groDianXin" height="100%" width="50%">
+			<mx:Image source="swf/coffeedou.swf"  x="0" y="-27"/>
+			<mx:Image source="images/featureddishes.png"  x="26" y="10"/>
+			<!--		点心图片		-->
+			<mx:Image source="images/cake.png"  x="0" y="39"
+					  rollOver="{this._animateMethod.rollOver_ImageByFade(event);}"
+					  rollOut="{this._animateMethod.rollOut_ImageByFade(event);}"/>
+			<mx:Image source="images/cakeText.png"  x="100" y="39"/>
+		</s:Group>
+		
+		<!--			蛋糕图片层			-->
+		<s:Group id="groCake" x="280" width="50%" height="100%" y="0">
+			<mx:Image source="images/dianxin.png"  x="0" y="39"
+					  rollOver="{this._animateMethod.rollOver_ImageByFade(event);}"
+					  rollOut="{this._animateMethod.rollOut_ImageByFade(event);}"/>
+			<mx:Image source="images/dianxinText.png"  x="99" y="39"/>
+		</s:Group>
+	</s:Group>
+	
+</s:Group>

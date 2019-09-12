@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="560" height="653" 
+		 xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+
+		<s:HTTPService id="resDao" method="POST" 
+					   url="http://localhost:8081/Coffee_Web/addreservation.jsp" 
+					   result="resDao_resultHandler(event)"
+					   fault="resDao_faultHandler(event)">
+			<mx:request>
+				<!--	需要传递的参数	-->
+				<resPartySize>{this.txtPartySize.text}</resPartySize>
+				<resDate>{this.txtYear.text+"-"+this.txtMonth.text+"-"+this.txtDay.text}</resDate>
+				<resName>{this.txtName.text}</resName>
+				<resEmail>{this.txtEmail.text}</resEmail>
+				<resPhone>{this.txtPhone.text}</resPhone>
+				<resMessage>{this.txtMessage.text}</resMessage>
+			</mx:request>
+		</s:HTTPService>
+		
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.charts.DateTimeAxis;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.effects.easing.Back;
+			import mx.events.CalendarLayoutChangeEvent;
+			import mx.events.FlexEvent;
+			import mx.formatters.PhoneFormatter;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import org.osmf.layout.AbsoluteLayoutFacet;
+
+			
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			/**			存放所有效果方法的类的实例			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			
+			/**			存放所有要显示和隐藏的层的集合对象，				*/
+			public var _groupList:ArrayCollection = new ArrayCollection();
+			
+			
+//	-------------------------		成员函数		-----------------------------------------
+			
+			/**			所有元素创建完毕之后，设置其他			*/
+			protected function loaded():void
+			{
+				// TODO Auto-generated method stub
+				this._groupList.addItem(this.groTopText);
+				this._groupList.addItem(this.groChiKe);
+			}
+			
+			/**			验证订餐人数			*/
+			private function validatePartySize():Boolean{
+				// 验证订餐人数
+				var size:int = parseInt(this.txtPartySize.text);
+				if(size <= 0){
+					this.imgTipPartySize.source = "images/error.gif";
+					this.imgTipPartySize.visible = true;
+					return false;
+				}else{
+					this.imgTipPartySize.source = "images/ok.gif";
+					this.imgTipPartySize.visible = true;
+					return true;
+				}				
+			}
+			
+			/**			验证订餐日期，			*/
+			private function validateDate():Boolean{
+				// 验证是否选择了日期
+				var date:String = this.txtDay.text;
+				if(date == ""){
+					this.imgTipDate.source = "images/error.gif";
+					this.imgTipDate.visible = true;
+					return false;
+				}else{
+					this.imgTipDate.source = "images/ok.gif";
+					this.imgTipDate.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证订餐时间				*/
+			private function validateTime():Boolean{
+				// 验证时间
+				var time:String = this.txtTime.text;
+				if(time == ""){
+					this.imgTipTime.source = "images/error.gif";
+					this.imgTipTime.visible = true;
+					return false;
+				}else{
+					this.imgTipTime.source = "images/ok.gif";
+					this.imgTipTime.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证姓名，订餐人姓名			*/
+			private function validateName():Boolean{
+				// 验证是否输入了名称
+				var name:String = this.txtName.text;
+				if(name == "" || name.length <2 || name.length >= 200){
+					this.imgTipName.source = "images/error.gif";
+					this.imgTipName.visible = true;
+					return false;
+				}else{
+					this.imgTipName.source = "images/ok.gif";
+					this.imgTipName.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证email		*/
+			private function validateEmail():Boolean{
+				// 验证email
+				var email:String = this.txtEmail.text;
+				if(email.indexOf("@") == -1 || email.lastIndexOf(".") == -1 || email.indexOf("@") >= email.lastIndexOf(".")){
+					this.imgTipEmail.source = "images/error.gif";
+					this.imgTipEmail.visible = true;
+					return false;
+				}else{
+					this.imgTipEmail.source = "images/ok.gif";
+					this.imgTipEmail.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证电话号码		*/
+			private function validatePhone():Boolean{
+				// 验证电话号码
+				var phone:String = this.txtPhone.text;
+				phone = parseInt(phone).toString();
+				
+				if(phone.length < 11 || phone == "NaN"){
+					this.imgTipPhone.source = "images/error.gif";
+					this.imgTipPhone.visible = true;
+					return false;
+				}else{
+					this.imgTipPhone.source = "images/ok.gif";
+					this.imgTipPhone.visible = true;
+					return true;
+				}
+			}
+			
+			/**		验证订餐信息			*/
+			private function validateMessage():Boolean{
+				// 验证输入的消息
+				var message:String = this.txtMessage.text;
+				if(message.length < 6 || message.length > 2000){
+					this.imgTipMessage.source = "images/error.gif";
+					this.imgTipMessage.visible = true;
+					return false;
+				}else{
+					this.imgTipMessage.source = "images/ok.gif";
+					this.imgTipMessage.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证订餐表单			*/
+			private function validateReservationForm():Boolean{
+				
+				// 验证所有表单元素
+				var r1:Boolean = this.validatePartySize();
+				var r2:Boolean = this.validateDate();
+				var r3:Boolean = this.validateTime();
+				var r4:Boolean = this.validateName();
+				var r5:Boolean = this.validatePhone();
+				var r6:Boolean = this.validateEmail();
+				var r7:Boolean = this.validateMessage();
+				
+				// 如果都为true，那么就返回true
+				if ( r1 && r2 && r3 && r4 && r5 && r6 && r7 ){
+					return true;
+				}else{
+					return false;
+				}
+			}
+			
+			/**			订餐表单提交方法		*/
+			private function reservationSubmit():void{
+				// 非空验证
+				if(this.validateReservationForm()){
+					// 显示等待页面
+					SubmitWaitPage._waitPageSelectedIndex = 0;
+					Main.showSubmitWaitPage();
+					// 提交表单
+					this.resDao.send();
+				}
+//				Alert.show("验证表单结果："+this.validateReservationForm());
+			}
+			
+			/**		还原表单，清空文本框		*/
+			public function resetReservationForm():void{
+				// 清空文本框
+				this.txtPartySize.text = "";
+				this.txtDay.text = "";
+				this.txtMonth.text = "";
+				this.txtYear.text = "";
+				this.txtTime.text = "";
+				this.txtName.text = "";
+				this.txtEmail.text = "";
+				this.txtPhone.text = "";
+				this.txtMessage.text = "";
+				
+				// 隐藏所有提示图片
+				this.imgTipPartySize.visible = false;
+				this.imgTipDate.visible = false;
+				this.imgTipTime.visible = false;
+				this.imgTipName.visible = false;
+				this.imgTipPhone.visible = false;
+				this.imgTipEmail.visible = false;
+				this.imgTipMessage.visible = false;
+			}
+
+			/**			初始化ContentReservation页面中的MenuStrip的名称			*/
+			public function InitializeMenuStrip():void{
+				this.ms1.titleText = Main._menuList[7].Name;
+				this.ms2.titleText = Main._menuList[6].Name;
+				this.ms3.titleText = Main._menuList[5].Name;
+				this.ms4.titleText = Main._menuList[4].Name;
+			}
+			
+			
+			
+			
+//	-------------------------		事件		-----------------------------------------
+			
+			
+			/**			更改日期控件时，改变textbox显示的文字			*/
+			protected function dateField_changeHandler(event:CalendarLayoutChangeEvent):void
+			{				
+				// TODO Auto-generated method stub
+//				var date:Date = this.dateField.selectedDate;
+				// 获取选中的日期
+//				var date:Date = event.newDate;
+//				
+//				// 获取选中日期的年月日数
+//				var year:int = date.fullYear;
+//				var month:int = date.month+1;
+//				var day:int = date.date;
+//				
+//				// 将时间显示在textbox中
+//				this.txtYear.text = year.toString();
+//				this.txtMonth.text = month.toString();
+//				this.txtDay.text = day.toString();
+			}
+			
+			/**			添加订单后，返回的结果				*/
+			protected function resDao_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				var obj:Object = event.result.Reservation.AddReservationResult;
+				var result:Boolean =  obj as Boolean;
+				
+				if(result){
+//					Alert.show("Reserve success!","Coffee");
+					// 显示等待页面
+					SubmitWaitPage._waitPageSelectedIndex = 1;
+//					Main.showSubmitWaitPage();
+					// 重置表单
+					this.resetReservationForm();
+				}else{
+//					Alert.show("Reserve failure!","Coffee");
+					// 显示等待页面
+					SubmitWaitPage._waitPageSelectedIndex = 2;
+//					Main.showSubmitWaitPage();
+				}
+			}
+
+			/**			添加订单失败后，提示信息			*/
+			protected function resDao_faultHandler(event:FaultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show("Your claim can not send out to go out, HttpService requests failure!\n\n您的请求未能发送出去，HttpService请求失败！\n\n"+event.messageId,"Coffee");
+				PopUpManager.removePopUp(Main._submitWaitPage);
+			}
+
+			/**			更改日期控件时，改变textbox显示的文字			*/
+			protected function dateField_valueCommitHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				// 获取选中的日期
+				var date:Date = this.dateField.selectedDate;
+
+				// 获取选中日期的年月日数
+				var year:int = date.fullYear;
+				var month:int = date.month+1;
+				var day:int = date.date;
+				
+				// 将时间显示在textbox中
+				this.txtYear.text = year.toString();
+				this.txtMonth.text = month.toString();
+				this.txtDay.text = day.toString();
+			}
+
+		]]>
+	</fx:Script>
+	
+
+	<!---		标题菜单栏下面的上述文字			-->
+	<s:Group id="groTopText" width="325" x="235">
+		<!--		上述文字		-->
+		<mx:Image source="swf/coffeedou.swf"  x="0" y="57"/>			
+		<mx:Image source="images/reservationonline.png" x="21" y="90" />
+		<!--		表单控件的层		-->
+		<s:Group x="0" y="122" width="100%" height="314" color="#3A403C">
+			<!-- 			表单内容的提示文字			-->
+			<s:Group width="60" height="100%" x="5" y="0">
+				<s:Label text="Party size:"  x="0" y="12"/>
+				<s:Label text="Date:" y="38" x="0"/>
+				<s:Label text="Time:" y="65" x="0"/>
+				<s:Label text="Name:" y="91" x="0"/>
+				<s:Label text="E-mail:" y="118" x="0"/>
+				<s:Label text="Phone:" y="143" x="0"/>
+				<s:Label text="Message:" y="169" x="0"/>					
+			</s:Group>
+			
+			<!--			表单内容的输入控件		-->
+			<s:Group width="259" height="100%" x="66">
+				<!---		订餐的人数			-->
+				<s:TextInput id="txtPartySize" y="7" x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="200" maxChars="2"/>
+				<mx:Image id="imgTipPartySize" source="images/ok.gif"
+						  y="7" x="210" width="20" height="20" visible="false" />
+				<!---		订餐日期			-->
+				<s:TextInput id="txtDay" y="33"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="40" textAlign="right" enabled="false"/>
+				<s:Label text="-" y="38" x="50" />
+				<s:TextInput id="txtMonth" y="33"  x="60" borderColor="#BEC0C2" focusColor="#FFFFFF" width="40" textAlign="right" enabled="false"/>
+				<s:Label text="-" y="38" x="105" />
+				<s:TextInput id="txtYear" y="33"  x="115" borderColor="#BEC0C2" focusColor="#FFFFFF" width="70" textAlign="right" enabled="false"/>
+				<mx:DateField id="dateField" x="208" y="42" width="1" height="1" change="dateField_changeHandler(event)"  valueCommit="dateField_valueCommitHandler(event)" />
+				<mx:Image id="imgTipDate" source="images/ok.gif" y="33" x="210"
+						  width="20" height="20" visible="false"/>
+				<!---		订餐时间			-->
+				<s:TextInput id="txtTime" y="59"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="200" maxChars="20"/>
+				<mx:Image id="imgTipTime" source="images/ok.gif" 
+						  y="59" x="210" width="20" height="20" visible="false"/>
+				<!---		订餐人姓名			-->
+				<s:TextInput id="txtName" y="85"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="200" maxChars="200"/>
+				<mx:Image id="imgTipName" source="images/ok.gif" 
+						  y="85" x="210" width="20" height="20" visible="false" />
+				<!---		订餐人邮箱		-->
+				<s:TextInput id="txtEmail" y="111"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="200" maxChars="200"/>
+				<mx:Image id="imgTipEmail" source="images/ok.gif" 
+						  y="111" x="210" width="20" height="20" visible="false" />
+				<!---		订餐人电话		-->
+				<s:TextInput id="txtPhone" y="137"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="200" maxChars="20"/>
+				<mx:Image id="imgTipPhone" source="images/ok.gif"
+						  y="137" x="210" width="20" height="20" visible="false" />
+				<!---		订餐人消息			-->
+				<s:TextArea id="txtMessage" y="163"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="200" height="113" maxChars="2000"/>
+				<mx:Image id="imgTipMessage" source="images/ok.gif"
+						  y="163" x="210" width="20" height="20" visible="false" />
+
+				<view:AnimateButton displayText="continue " y="275" x="130" click="reservationSubmit();"/>
+			</s:Group>
+		</s:Group>
+	</s:Group>
+	
+	
+	<!---			吃客2的层			-->
+	<s:Group id="groChiKe" width="100%" height="216" y="455">
+		<!--		吃客2图片层			-->
+		<s:Group id="groDianXin" height="100%" width="100%">
+			<mx:Image source="swf/coffeedou.swf"  x="0" y="-27"/>
+			<mx:Image source="images/specialeventreservation.png"  x="26" y="10"/>
+			<!--		吃客2图片		-->
+			<mx:Image source="images/chike2.png"  x="0" y="47"
+					  rollOver="{this._animateMethod.rollOver_ImageByFade(event);}"
+					  rollOut="{this._animateMethod.rollOut_ImageByFade(event);}"/>
+			<mx:Image source="images/chike2Text.png" x="120" y="47"/>
+			<!--			菜单条的项目			-->
+			<view:MenuStrip id="ms1" x="114" y="92" 
+							_isAutoWidth="true" _autoCharWidth="6.7" fontSize="11"
+							titleText="Sed ut perspiciatis unde omnis"
+							creationComplete="{this.ms1.imgDashed.visible = false;this.ms1.lblPrice.text='';}"/>
+			<view:MenuStrip id="ms2" x="312" y="92" 
+							_isAutoWidth="true" _autoCharWidth="6.7" fontSize="11"
+							titleText="Sed ut perspiciatis unde omnis"
+							creationComplete="{this.ms2.imgDashed.visible = false;this.ms2.lblPrice.text='';}"/>
+			<view:MenuStrip id="ms3" x="114" y="110"
+							_isAutoWidth="true" _autoCharWidth="6.7" fontSize="11"
+							titleText="Natus error sit voluptat emque"
+							creationComplete="{this.ms3.imgDashed.visible = false;this.ms3.lblPrice.text='';}"/>
+			<view:MenuStrip id="ms4" x="312" y="110" 
+							_isAutoWidth="true" _autoCharWidth="6.7" fontSize="11"
+							titleText="Natus error sit voluptat emque"
+							creationComplete="{this.ms4.imgDashed.visible = false;this.ms4.lblPrice.text='';}"/>
+			<!--		效果按钮			-->
+			<view:AnimateButton displayText=" view more " x="114" y="135" click="Main.showTitleWindow('Reservation-view more')" />
+		</s:Group>
+	</s:Group>
+
+</s:Group>

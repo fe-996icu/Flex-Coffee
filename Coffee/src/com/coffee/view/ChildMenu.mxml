@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group click="group_clickHandler(event)"
+		 rollOver="group_mouseOverHandler(event)"
+		 rollOut="group_mouseOutHandler(event)"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="166" height="56">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.skins.halo.TitleBackground;
+			
+			
+			
+//	-----------------		成员变量		-------------------------------------------------------
+			
+			
+			/**		特效的方法的对象		*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			[Bindable]
+			/**		红色文字的Label的Text属性		*/
+			public var redText:String = "ABOUT OUR CAFE";
+			
+			[Bindable]
+			/**		灰色文字的Label的Text属性		*/
+			public var grayText:String = "about us";
+			
+			/**		是否可以播放特效，如果为true，则为已经点击过了，就不允许再播放移入移出特效,默认为false		*/
+			public var _isClick:Boolean = false;
+			
+			
+			
+			
+//	-----------------		事件		-------------------------------------------------------			
+			
+			
+			/**			鼠标一如到这个对象时，显示特效		*/
+			protected function group_mouseOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.BUTTON;
+				
+				// 判断是否单击选中了
+				if(this._isClick)
+					return;
+				
+				// 显示特效 
+				this._animateMethod.rollOverMenu(this);
+			}
+
+			/**			鼠标移出这个对象的时候，显示特效			*/
+			protected function group_mouseOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.AUTO;
+				
+				// 判断是否单击选中了
+				if(this._isClick)
+					return;
+				
+				// 显示特效 
+				this._animateMethod.rollOutMenu(this);
+			}
+
+			/**			鼠标点击这个对象的时候，切换显示层			*/
+			protected function group_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				// 如果，自己已经被点中了，就不允许在进行
+				if(this._isClick)
+					return;
+				
+				// 遍历，所有子菜单，还原被选中的对象
+				for(var i:int = 0 ; i < Main._childMenus.length ; i ++){
+					// 判断，是否被选中，如果是选中的，就取消选中
+					if(Main._childMenus[i]._isClick){
+						Main._childMenus[i]._isClick = false;
+						// 还原选中
+						this._animateMethod.rollOutMenu(Main._childMenus[i]);
+					}
+				}
+				
+				// 设置标题栏菜单想，选中为空
+				TitleMenu._selectedMenu = null;
+			}
+
+			/**			下划线，鼠标移入时			*/
+			protected function hrule_rollOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.AUTO;
+			}
+
+			/**			下划线，鼠标输出时			*/
+			protected function hrule_rollOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.BUTTON;
+			}
+
+		]]>
+	</fx:Script>
+	
+	<!--		显示的红色文字		-->
+	<s:Label id="lblRed" 
+			 x="36" y="17" 
+			 text="{this.redText}" 
+			 fontWeight="bold" 
+			 fontFamily="Nina"
+			 color="#A2080E" 
+			 fontSize="12"/>
+	<!--		显示的灰色文字		-->
+	<s:Label id="lblGray" 
+			 x="34" y="32" 
+			 text="{this.grayText}" 
+			 fontWeight="bold"
+			 fontFamily="Nina"
+			 color="#909391" 
+			 fontSize="12"/>
+	<!--		显示的水平线		-->
+	<mx:HRule height="1" x="0" y="55" width="100%" 
+			  rollOver="hrule_rollOverHandler(event)"
+			  rollOut="hrule_rollOutHandler(event)"/>
+	
+</s:Group>

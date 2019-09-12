@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="560" height="653" 
+		 xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.collections.ArrayCollection;
+			
+			
+			
+//	-------------------			成员函数		------------------------------------------
+			
+			
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			public var _groupList:ArrayCollection = new ArrayCollection();
+			
+			
+//	----------------------			成员函数		----------------------------------------
+			
+			
+			/**				窗体元素加载完毕之后，加载设置其他		*/
+			private function loaded():void{
+				// 将要显示隐藏的特效层，放到集合中
+				this._groupList.addItem(this.imgOurHistory);
+				this._groupList.addItem(this.groLaoBanNiang);
+				this._groupList.addItem(this.groYuanGong);
+				this._groupList.addItem(this.groChiKe);
+			}
+			
+		]]>
+	</fx:Script>
+
+	
+	<!--			老板娘和员工的介绍			-->
+	<s:Group x="235" height="443" width="325">
+		<mx:Image id="imgOurHistory" source="swf/ourhistory.swf"  x="0" y="60"/>
+		<!--		老板娘信息层		-->
+		<s:Group id="groLaoBanNiang" y="200">
+			<!--		老板娘		-->
+			<mx:Image source="images/laobanniang.png" x="0" 
+					  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+					  rollOut="this._animateMethod.rollOut_ImageByFade(event);"/>
+			<mx:Image source="images/laobanniangtext.png" x="95"/>
+		</s:Group>
+		<!--		员工信息层		-->
+		<s:Group id="groYuanGong" y="305">
+			<!--		员工		-->
+			<mx:Image source="images/yuangong.png" x="0" y="0"
+					  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+					  rollOut="this._animateMethod.rollOut_ImageByFade(event);"/>
+			<mx:Image source="images/yuangongtext.png" x="95" y="0"/>
+			<view:AnimateButton displayText=" view more " x="-8" y="95"
+								click="{Main.showTitleWindow('About us-view more1');}" />
+		</s:Group>
+		
+	</s:Group>
+	
+	
+	<!--		吃客图片的层		-->
+	<s:Group id="groChiKe" height="173" width="100%" y="419" x="0">
+		<!--		冒烟的咖啡豆		-->
+		<mx:Image source="swf/coffeedou.swf"/>
+		<mx:Image source="images/roastingtoperfection.png"  x="18" y="32"/>
+		<mx:Image source="images/chike.png"  x="0" y="69"
+				  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+				  rollOut="this._animateMethod.rollOut_ImageByFade(event);"/>
+		<mx:Image source="images/chiketext.png"  x="117" y="76"/>
+		<view:AnimateButton displayText=" view more " click="{Main.showTitleWindow('About us-view more2');}"  x="115" y="150"/>
+	</s:Group>
+	
+</s:Group>

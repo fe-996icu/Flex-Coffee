@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="560" height="653"
+		 xmlns:view="com.coffee.view.*">
+	
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:HTTPService id="maiDao" method="POST"
+					   url="http://localhost:8081/Coffee_Web/addmailing.jsp"
+					   result="maiDao_resultHandler(event)"
+					   fault="maiDao_faultHandler(event)">
+			<mx:request>
+				<maiName>{this.txtName.text}</maiName>
+				<maiAddress>{this.txtAddress.text}</maiAddress>
+				<maiPhone>{this.txtPhone.text}</maiPhone>
+				<maiMessage>{this.txtMessage.text}</maiMessage>
+			</mx:request>
+		</s:HTTPService>
+	</fx:Declarations>
+		
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.osmf.layout.AbsoluteLayoutFacet;
+
+			
+			
+			
+// ----------------------		成员属性		------------------------------------------------------
+			
+			/**			存放所有效果方法的类的实例			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			
+			/**			存放所有要显示和隐藏的层的集合对象，				*/
+			public var _groupList:ArrayCollection = new ArrayCollection();
+			
+			
+			
+//	---------------------------		成员方法		-------------------------------------
+			
+			
+			/**			所有元素创建完毕之后，设置其他			*/
+			protected function loaded():void
+			{
+				// TODO Auto-generated method stub
+				this._groupList.addItem(this.imgTopText);
+				this._groupList.addItem(this.groForm);
+				this._groupList.addItem(this.imgOurAddress);
+				this._groupList.addItem(this.imgContactInfo);
+			}
+
+			/**				验证姓名		*/
+			private function validateName():Boolean{
+				// 验证是否输入了名称
+				var name:String = this.txtName.text;
+				if(name == "" || name.length < 2 || name.length >= 200){
+					this.imgTipName.source = "images/error.gif";
+					this.imgTipName.visible = true;
+					return false;
+				}else{
+					this.imgTipName.source = "images/ok.gif";
+					this.imgTipName.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证联系地址			*/
+			private function validateAddress():Boolean{
+				// 验证联系地址
+				var addr:String = this.txtAddress.text;
+				if(addr == ""){
+					this.imgTipAddress.source = "images/error.gif";
+					this.imgTipAddress.visible = true;
+					return false;
+				}else{
+					this.imgTipAddress.source = "images/ok.gif";
+					this.imgTipAddress.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证联系电话		*/
+			private function validatePhone():Boolean{
+				// 验证电话号码
+				var phone:String = this.txtPhone.text;
+				phone = parseInt(phone).toString();
+				if(phone.length < 11 || phone == "NaN"){
+					this.imgTipPhone.source = "images/error.gif";
+					this.imgTipPhone.visible = true;
+					return false;
+				}else{
+					this.imgTipPhone.source = "images/ok.gif";
+					this.imgTipPhone.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证送餐信息				*/
+			private function validateMessage():Boolean{
+				// 验证输入的消息
+				var message:String = this.txtMessage.text;
+				if(message.length < 6 || message.length > 2000){
+					this.imgTipMessage.source = "images/error.gif";
+					this.imgTipMessage.visible = true;
+					return false;
+				}else{
+					this.imgTipMessage.source = "images/ok.gif";
+					this.imgTipMessage.visible = true;
+					return true;
+				}
+			}
+			
+			/**			验证送餐表单		*/
+			private function validateMailingForm():Boolean{
+				
+				// 验证所有表单元素
+				var r1:Boolean = this.validateName();
+				var r2:Boolean = this.validateAddress();
+				var r3:Boolean = this.validatePhone();
+				var r4:Boolean = this.validateMessage();
+				
+				// 验证是否都通过
+				if(r1 && r2 && r3 && r4){
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			/**			重置表单信息			*/
+			public function resetMailingForm():void
+			{
+				// TODO Auto-generated method stub
+				// 清空填写内容
+				this.txtName.text = "";
+				this.txtAddress.text = "";
+				this.txtPhone.text = "";
+				this.txtMessage.text = "";
+
+				// 隐藏提示图片
+				this.imgTipName.visible = false;
+				this.imgTipAddress.visible = false;
+				this.imgTipPhone.visible = false;
+				this.imgTipMessage.visible = false;
+			}
+
+			/**			提交送餐表单			*/
+			protected function submitMailingForm():void
+			{
+				// TODO Auto-generated method stub
+				// 如果为true，提交表单
+				if(this.validateMailingForm()){
+					// 显示等待页面
+					SubmitWaitPage._waitPageSelectedIndex = 0;
+					Main.showSubmitWaitPage();
+					// 发送请求
+					this.maiDao.send();
+				}
+//				Alert.show("验证表单的结果："+this.validateMailingForm());
+			}
+
+			/**			添加订单后，返回的结果				*/
+			protected function maiDao_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				var obj:Object = event.result.Mailing.AddMailingResult;
+				var result:Boolean =  obj as Boolean;
+//				Alert.show(result+"");
+				if(result){
+//					Alert.show("Send the meal claim the success!","Coffee");
+					// 显示等待页面
+					SubmitWaitPage._waitPageSelectedIndex = 1;
+//					Main.showSubmitWaitPage();
+					// 重置表单
+					this.resetMailingForm();
+				}else{
+//					Alert.show("Send the meal claim the failure!","Coffee");
+					// 显示等待页面
+					SubmitWaitPage._waitPageSelectedIndex = 2;
+//					Main.showSubmitWaitPage();
+				}
+			}
+
+			/**			添加订单失败后，提示信息			*/
+			protected function maiDao_faultHandler(event:FaultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show("Your claim can not send out to go out, HttpService requests failure!\n\n您的请求未能发送出去，HttpService请求失败！\n\n"+event.messageId,"Coffee");
+				PopUpManager.removePopUp(Main._submitWaitPage);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	
+	<!---			最下面 的联系信息层			-->
+	<s:Group width="100%" height="216" y="455">
+		<s:Group height="100%" width="100%">
+			<!---		我们的地址的Flash文件			-->
+			<mx:Image id="imgOurAddress" source="swf/ouraddress.swf"  x="0" y="-27"/>
+			<!---		联系信息的Flash文件		-->
+			<mx:Image id="imgContactInfo" source="swf/contactinfo.swf"  x="243" y="-27"/>
+		</s:Group>
+	</s:Group>
+	
+	
+	<!---		标题菜单栏下面的上述文字			-->
+	<s:Group width="325" x="235">
+		<!---		标题菜单栏下面的上述文字			-->
+		<mx:Image id="imgTopText" source="swf/contactform.swf"  x="0" y="57"/>
+		<!--		表单控件的层		-->
+		<s:Group id="groForm" x="0" y="169" width="100%" height="287" color="#3A403C" fontSize="11">
+			<!-- 			表单内容的提示文字			-->
+			<s:Group width="91" height="100%" x="5" y="0">
+				<s:Label text="Your full name:"  x="0" y="12"/>
+				<s:Label text="E-mail address:" y="38" x="0"/>
+				<s:Label text="Your phone:" y="65" x="0"/>
+				<s:Label text="Your message:" y="91" x="0"/>					
+			</s:Group>
+			<!--			表单内容的输入控件		-->
+			<s:Group width="232" height="100%" x="93">
+				<!---			送餐人的姓名		-->
+				<s:TextInput id="txtName" y="7"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="190"/>
+				<mx:Image id="imgTipName" source="images/ok.gif" y="7" x="200"
+						  width="20" height="20" visible="false"/>
+				<!---			送餐人的地址		-->
+				<s:TextInput id="txtAddress" y="33"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="190"/>
+				<mx:Image id="imgTipAddress" source="images/ok.gif" y="33" x="200"
+						  width="20" height="20" visible="false"/>
+				<!---			送餐人的电话		-->
+				<s:TextInput id="txtPhone" y="59"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="190"/>
+				<mx:Image id="imgTipPhone" source="images/ok.gif" y="59" x="200"
+						  width="20" height="20" visible="false"/>
+				<!---			送餐人的消息		-->
+				<s:TextArea id="txtMessage" y="85"  x="5" borderColor="#BEC0C2" focusColor="#FFFFFF" width="190"/>
+				<mx:Image id="imgTipMessage" source="images/ok.gif" y="85" x="200"
+						  width="20" height="20" visible="false"/>
+				
+				<!--		效果按钮	重置，和	提交			-->
+				<view:AnimateButton displayText=" reset " y="221" x="68" click="resetMailingForm();"/>
+				<view:AnimateButton displayText=" submit " y="221" x="131" click="submitMailingForm();"/>
+			</s:Group>
+		</s:Group>
+	</s:Group>
+	
+</s:Group>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+		 rollOver="group_rollOverHandler(event)"
+		 rollOut="group_rollOutHandler(event)" 
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="292" height="24">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			
+			
+			
+//	-----------------		成员变量		-------------------------------------------------------			
+			
+			[Bindable]
+			/**			设置菜单名称		*/
+			public var titleText:String = "Suspendisse porttitor turpis";
+			
+			[Bindable]
+			/**			设置相应菜系的价格			*/
+			public var price:String = "4.95";
+			
+			/**			验证是否为鼠标移入的样式			*/
+			public var _isSelected:Boolean = false;
+			
+			/**			动画方法的对象			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			/**	是否自动调整菜单条的宽度，
+			 * 	默认为fasle，如果为true，
+			 * 宽度则为显示文字（菜单名称）的长度*_autoWidth属性		*/
+			public var _isAutoWidth:Boolean = false;
+			
+			/**			自动调整菜单条的宽度的每个字符的宽度，默认是5.5			*/
+			public var _autoCharWidth:Number = 5.5;
+			
+			
+			
+			
+//	-----------------		成员函数		-------------------------------------------------------
+			
+			
+			/**				所有元素创建完毕之后，			*/
+			private function loaded():void{
+				if(this._isAutoWidth){
+					this.width = this.titleText.length*this._autoCharWidth;
+				}
+			}
+			
+			/**			验证并还原所有菜单条的样式		*/
+			private function validateMenuStripIsSelected():void{
+				// 循环验证所有菜单条是否被选中，如果被选中，就还原他的样式
+				for(var i:int = 0 ; i < ContentHome._menuStrips.length ; i ++){
+					if(ContentHome._menuStrips[i]._isSelected){
+						ContentHome._menuStrips[i]._isSelected = false;
+						this._animateMethod.menuStrip_rollOut(ContentHome._menuStrips[i]);
+					}
+				}
+			}
+			
+			
+			
+//	-----------------		事件		-------------------------------------------------------
+			
+			
+			/**			鼠标移入这个菜单条的时候				*/
+			protected function group_rollOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.BUTTON;
+				
+				// 设置所有选中的菜单条的样式
+				this.validateMenuStripIsSelected();
+				
+				// 设置自己为选中，（鼠标悬浮上面）
+				this._isSelected = true;
+				
+				// 显示特效
+				this._animateMethod.menuStrip_rollOver(this);
+				
+			}
+
+			/**			鼠标移出这个菜单条的时候		*/
+			protected function group_rollOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.AUTO;
+								
+				// 取消自己被选中
+				this._isSelected = false;
+				
+				// 还原所有选中的菜单条的样式
+				this.validateMenuStripIsSelected();
+				
+				// 显示特效
+				this._animateMethod.menuStrip_rollOut(this);
+			}
+
+			/**		 鼠标移入需线条的时候，鼠标指针变小手		*/
+			protected function imgDashed_rollOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.AUTO;
+			}
+
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	
+	<mx:Image id="imgBG" source="images/menustrip.png" 
+			  height="16" width="94%" maintainAspectRatio="false" 
+			  x="10" y="3" alpha="0"/>
+	
+	<mx:Image id="imgDot" source="images/dot.png" width="6" height="6"  x="8" y="8"/>
+	<s:Label text="{this.titleText}" color="#393F3C"  x="22" y="6"/>
+	<s:Label id="lblPrice" text="${this.price}" color="#991D19" x="236" y="6" fontWeight="bold"/>
+	<mx:Image id="imgDashed" source="images/dashed.png" x="10" y="20" width="282" rollOver="imgDashed_rollOverHandler(event)" />
+	
+</s:Group>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="560" height="653" xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.Form;
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+						
+			/**			存放所有菜单的项的泛型		*/
+			public static var _menuStrips:Vector.<MenuStrip> = new Vector.<MenuStrip>();
+			
+			/**			存放出现和隐藏的层的集合			*/
+			public var _groupList:ArrayCollection = new ArrayCollection();
+			
+			/**			所有效果方法的类的实例对象			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			
+//	-----------------------		成员函数		--------------------------------------------
+			
+			
+			/**			窗体元素创建完毕之后，加载设置			*/
+			private function loaded():void{
+				// 添加菜单条项目到集合中
+				ContentHome._menuStrips.push(this.ms1,this.ms2,this.ms3,this.ms4);
+				
+				// 添加层，到集合中
+				this._groupList.addItem(this.groTopText);		// 上述文字
+				this._groupList.addItem(this.groMenuStrip);	// 菜单条
+				this._groupList.addItem(this.groCaoMei);		// 草莓
+				this._groupList.addItem(this.groYangMei);		// 杨梅
+				
+				// 隐藏子元素
+				for(var i:int = 0 ; i < this._groupList.length ; i ++){
+					this._groupList[i].visible = false;
+				}
+				
+				// 设置引用对象
+				TitleMenu._groupList = this._groupList;
+			}
+
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group width="210" height="100%">
+		<!--		草莓图片的层		-->
+		<s:Group id="groCaoMei" height="205" width="100%" y="455" x="0">
+			<mx:Image source="images/caomei.png"
+					  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+					  rollOut="this._animateMethod.rollOut_ImageByFade(event);" />
+			<mx:Image source="swf/$5.5.swf"  x="14" y="52"/>
+			<mx:Image source="images/caomeiText.png"  x="0" y="115"/>
+		</s:Group>
+	</s:Group>
+	<s:Group width="325" x="235" height="100%">
+		
+		<!--		菜单条的层			-->
+		<s:Group id="groMenuStrip" x="0" y="0" width="325" height="437">
+			
+			<!--		冒烟的咖啡豆		-->
+			<mx:Image source="swf/coffeedou.swf"  x="0" y="228"/>
+			<!--		冒烟的咖啡豆旁边的标题文字			-->
+			<!--<s:Label text="Specials in today's menu" color="#3A403C" x="23" y="270" fontWeight="bold" fontSize="14"/>-->
+			<mx:Image source="images/specialsintoday'smenu.png" x="23" y="264" />
+			<!--		菜单条		上横线			-->
+			<mx:HRule width="270" y="293" x="0" strokeColor="#A51A16"/>
+			<!--		菜单条		开始			-->
+			<view:MenuStrip id="ms1" x="-8" y="305" 
+							titleText="Suspendisse porttitor turpis." price="4.95" />
+			<view:MenuStrip id="ms2" x="-8" y="325" 
+							titleText="Sed ut erat, ultrices nec." price="9.95" />
+			<view:MenuStrip id="ms3" x="-8" y="345" 
+							titleText="Tristique et, enim praesent suspen." price="7.00" />
+			<view:MenuStrip id="ms4" x="-8" y="365" 
+							titleText="Maecenas tristique lorem sed libero" price="7.95"
+							creationComplete="{this.ms4.imgDashed.visible = false;}"/>
+			<!--		菜单条		结束	(结束的菜单条不能有下滑虚线条)		-->
+			<!--		菜单条		下划线			-->
+			<mx:HRule width="270" y="403" x="0" strokeColor="#A51A16"/>
+			<!--		效果按钮		view all menu		-->
+			<view:AnimateButton displayText="view all menu" x="-8" y="406" click="Main.showDataGridViewMenu('Home-view all menu')" />
+			
+		</s:Group>
+		
+		<!--		标题菜单栏下面的上述文字			-->
+		<s:Group id="groTopText" width="325" height="226">
+			<!--		上述文字		-->
+			<mx:Image source="swf/coffeedou.swf"  x="0" y="56"/>
+			<mx:Image source="images/thebestcoffeetoanytaste.png"  x="22" y="54"/>
+			<mx:Image source="images/thebestcoffeetoanytasteText.png"  x="1" y="122"/>
+			<!--		遮挡swf按钮的白纸		-->
+			<mx:Image source="images/whiteButton.png" y="200"  x="-5"/>
+			<!--		效果按钮		more about cafe			-->
+			<view:AnimateButton displayText="more about cafe" y="205" x="-8" click="Main.showTitleWindow('Home-more about cafe');" />
+		</s:Group>
+		
+		<!--		杨梅层			-->
+		<s:Group id="groYangMei" y="455">
+			<!--		杨梅图片		-->
+			<mx:Image source="images/yangmei.png"
+					  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+					  rollOut="this._animateMethod.rollOut_ImageByFade(event);" />
+			<mx:Image source="swf/$3.5.swf"  x="14" y="52"/>
+			<mx:Image source="images/yangmeiText.png"  x="0" y="115"/>
+		</s:Group>
+	</s:Group>
+</s:Group>

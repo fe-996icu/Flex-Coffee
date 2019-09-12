@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="560" height="653" xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.collections.ArrayCollection;
+			
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			/**			效果方法的对象		*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			/**			存放出现离开的效果的层的集合			*/
+			public var _groupList:ArrayCollection = new ArrayCollection();
+			
+			
+			
+			
+//	-----------------------		成员方法		--------------------------------------------
+			
+			/**			所有元素创建完毕之后，设置效果的层到集合中		*/
+			private function loaded():void{
+				this._groupList.addItem(this.imgTopText);
+				this._groupList.addItem(this.groDouJiangJi);
+				this._groupList.addItem(this.groMenuStrip);
+				this._groupList.addItem(this.groJuan1);
+				this._groupList.addItem(this.groJuan2);
+			}
+			
+			/**			初始化ContentSpecial页面中的MenuStrip的名称			*/
+			public function InitializeMenuStrip():void{
+				this.ms1.titleText = Main._menuList[11].Name;
+				this.ms2.titleText = Main._menuList[10].Name;
+				this.ms3.titleText = Main._menuList[9].Name;
+				this.ms4.titleText = Main._menuList[8].Name;
+			}
+			
+		]]>
+	</fx:Script>
+
+	
+	<!--		左边的层		-->
+	<s:Group width="210" height="100%">
+		<!--			蛋糕卷2的层		-->
+		<s:Group id="groJuan1" height="198" width="100%" y="455" x="0">
+			<mx:Image id="imgJuan1" source="images/juan1.png" 
+					  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+					  rollOut="this._animateMethod.rollOut_ImageByFade(event);" />
+			<mx:Image source="swf/$3.0.swf"  x="14" y="53"/>
+			<!--		卷1的文字		-->
+			<mx:Image source="images/juan1Text.png" y="108" x="0"/>
+		</s:Group>
+	</s:Group>
+	
+	<!--		右边的层			-->
+	<s:Group width="325" x="235" height="100%">	
+		
+		<!--		标题菜单栏下面的上述文字		上述文字		-->
+		<mx:Image id="imgTopText" source="swf/specialequipment.swf"  x="0" y="60"/>		
+		
+		<!--		上述文字下面的豆浆机的层			-->
+		<s:Group id="groDouJiangJi" width="325" height="107" y="193" x="0">
+			<!--		豆浆机图片			-->
+			<mx:Image source="images/doujiangji.png" 
+					  rollOver="{this._animateMethod.rollOver_ImageByFade(event);}"
+					  rollOut="{this._animateMethod.rollOut_ImageByFade(event);}"/>
+			<!--		豆浆机文本			-->
+			<mx:Image source="images/doujiangjiText.png"  x="100" y="3"/>
+			<!--		豆浆机	文本的下划线			-->
+			<mx:Image id="imgHideLine" source="images/hideline.png" width="150" height="20" x="103" y="37" 
+					  maintainAspectRatio="false" alpha="0" buttonMode="true"
+					  rollOver="{this.imgHideLine.alpha = 1;}"
+					  rollOut="{this.imgHideLine.alpha = 0;}"/>
+		</s:Group>
+		
+		<!--			菜单条的层			-->
+		<s:Group id="groMenuStrip" y="305" width="100%" height="135">
+			<!--		菜单条		开始			-->
+			<view:MenuStrip id="ms1" x="-8" y="0" width="270"
+							titleText="Suspendisse porttitor turpis."
+							creationComplete="{this.ms1.imgDashed.visible = false;this.ms1.lblPrice.text='';}"/>
+			<view:MenuStrip id="ms2" x="-8" y="20" width="270"
+							titleText="Sed ut erat, ultrices nec."
+							creationComplete="{this.ms2.imgDashed.visible = false;this.ms2.lblPrice.text='';}"/>
+			<view:MenuStrip id="ms3" x="-8" y="40" width="270"
+							titleText="Tristique et, enim praesent suspen."
+							creationComplete="{this.ms3.imgDashed.visible = false;this.ms3.lblPrice.text='';}"/>
+			<view:MenuStrip id="ms4" x="-8" y="60" width="270"
+							titleText="Maecenas tristique lorem sed libero"
+							creationComplete="{this.ms4.imgDashed.visible = false;this.ms4.lblPrice.text='';}"/>
+			<!--		菜单条		结束	(结束的菜单条不能有下滑虚线条)		-->
+			<view:AnimateButton displayText=" view more " y="95"  x="-8" click="Main.showTitleWindow('Specials-view all menu')"/>
+		</s:Group>
+
+		<!--			蛋糕卷2的层		-->
+		<s:Group id="groJuan2" height="198" width="100%" y="455" x="0">
+			<mx:Image id="imgJuan2" source="images/juan2.png"
+					  rollOver="this._animateMethod.rollOver_ImageByFade(event);"
+					  rollOut="this._animateMethod.rollOut_ImageByFade(event);" />
+			<mx:Image source="swf/$4.5.swf"  x="11" y="53"/>
+			<!--		卷2的文字		-->
+			<mx:Image source="images/juan2Text.png" y="103" x="0"/>
+		</s:Group>
+		
+	</s:Group>
+	
+</s:Group>

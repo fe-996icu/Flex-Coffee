@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="268" height="290" 
+		 xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.effects.Fade;
+			import mx.effects.Move;
+			import mx.effects.Sequence;
+			import mx.effects.SoundEffect;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+
+			
+			
+// 	-------------------		成员字段		------------------------------------
+			
+			/**			菜单数组，12个菜单项的集合，读取XML文件				*/
+			private var _menuArray:ArrayCollection = new ArrayCollection();
+			
+			/**			移动对象		*/
+			private var _move:Move = new Move();
+			
+			/**			再次移动的对象			*/
+			private var _moveAgain:Move = new Move();
+			
+			/**			淡入淡出的对象				*/
+			private var _fade:Fade = new Fade();
+			
+			/**			显示行数的索引			*/
+			private var _showIndex:int = 0;
+			
+			
+			
+			
+//	----------------------		成员函数		-------------------------------------------
+			
+			
+			
+			/**			窗体加载完毕之后，设置要显示的12条菜单信息				*/
+			public function createDataGridViewRow():void
+			{
+				// TODO Auto-generated method stub
+				
+				// 清空页面中的元素
+				this.removeAllElements();
+				
+				// 清空集合
+				this._menuArray.removeAll();
+				
+				// 循环查询出来的菜单项目
+				for(var i:int = 0 ; i < Main._menuList.length ; i ++){
+					// 创建菜单行对象
+					var row:DataGridViewRow = new DataGridViewRow();
+					
+					// 设置显示的文字
+					row.menuName = Main._menuList[i].Name;
+					row.price = Main._menuList[i].Price+".00";
+					
+					// 设置显示的位置
+					row.y = (i+1)*22;
+					this.addElement(row);
+					// 不可见
+					row.visible = false;
+					
+					// 添加到集合中
+					this._menuArray.addItem(row);
+				}
+				
+				// 显示数据行
+				this.showDateGridViewRow();
+				
+			}
+			
+			/**			显示数据行		*/
+			private function showDateGridViewRow():void{
+				var duration:Number = 50;
+				
+				// 获取子菜单对象
+				var obj:DisplayObject = this._menuArray[this._showIndex] as DisplayObject;
+					
+				obj.visible = true;
+					
+				// 创建序列
+				var seq:Sequence = new Sequence(obj);
+				// 添加事件
+				seq.addEventListener(EffectEvent.EFFECT_END,showDataGridViewEnd);
+					
+				// 先向下移动
+				this._move.yFrom = 0;
+				this._move.yTo = obj.y;
+					
+				seq.addChild(this._move);
+				seq.duration = duration;
+				seq.play();
+					
+					// 播放声音
+				if(Main._isPlaySound){
+					Main._soundEffect = new SoundEffect(obj);
+					Main._soundEffect.source = "sounds/slide.mp3";
+					Main._soundEffect.play();
+				}
+				
+			}
+			
+			
+			
+			
+			
+//	----------------------		事件		--------------------------------------------
+			
+			
+			
+						
+			/**				序列执行完毕之后，再次执行序列			*/
+			private function showDataGridViewEnd(event:EffectEvent):void{
+				// 数据行的索引自增
+				this._showIndex++;
+				// 如果索引大于集合长度，索引清零，否则，继续序列
+				if(this._showIndex >= this._menuArray.length){
+					this._showIndex = 0;
+				}else{
+					this.showDateGridViewRow();
+				}
+			}
+			
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<!--			效果按钮		
+	<view:AnimateButton y="286" x="-8" displayText=" view more " click="{Main.showTitleWindow('Menu-view more');}" />
+	-->
+</s:Group>

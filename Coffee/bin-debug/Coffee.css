@@ -1,0 +1,13 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+
+global
+{
+	text-decoration: none;
+	font-style: normal;
+	font-weight: normal;
+	content-background-alpha: 1.0;
+}
+	

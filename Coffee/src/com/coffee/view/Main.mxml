@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+				   xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   width="775" height="720" xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:HTTPService id="menuDao" method="POST"
+					   url="http://localhost:8081/Coffee_Web/querymenu.jsp"
+					   result="menuDao_resultHandler(event)" 
+					   fault="menuDao_faultHandler(event)">
+			<mx:request>
+				<selectedPage>1</selectedPage>
+			</mx:request>
+		</s:HTTPService>
+		<!---		计算才菜单总页数的HttpService		-->
+		<s:HTTPService id="pageSumDao" method="POST" url="http://localhost:8081/Coffee_Web/countpages.jsp" result="pageSumDao_resultHandler(event)" fault="menuDao_faultHandler(event)" />
+	</fx:Declarations>
+	
+
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.core.INavigatorContent;
+			import mx.effects.SoundEffect;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.osmf.layout.AbsoluteLayoutFacet;
+
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			
+			/**			播放所有音效的SoundEffect对象	，调用时只需设置声音文件的路径和play()方法			*/
+			public static var _soundEffect:SoundEffect = new SoundEffect();
+			
+			/**			播放背景音乐的Sound对象		*/
+			public static var _bgSound:Sound = new Sound(new URLRequest("sounds/bgsound.mp3"));
+			
+			/**			控制背景音乐的SoundChannel对象			*/
+			public static var _soundChannel:SoundChannel = null;
+			
+			/**			所有关于移动的方法的类的对象			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			/**			是否播放声音			*/
+			public static var _isPlaySound:Boolean = false;
+			
+			/**			背景声音播放的位置			*/
+			private static var _soundPlayTime:Number = 0;
+			
+			/**			存放和获取所有子菜单的	泛型集合		*/
+			public static var _childMenus:Vector.<ChildMenu> = new Vector.<ChildMenu>();
+			
+			/**			显示的标题窗口对象			*/
+			public static var _viewAllMenu:ViewAllMenu = new ViewAllMenu();
+			
+			/**			分页查询的菜单窗口		*/
+			public static var _pageMenu:PageMenu = new PageMenu();
+			
+			/***		Main类的引用，自己的引用				*/
+			public static var _main:Main = null;
+			
+			[Bindable]
+			/**			显示被选中的内容索引				*/
+			public static var _showSelectedIndex:Number = 0;
+			
+			/**			被显示的内容中的子容器的集合，要显示出现和移出的效果的对象的集合			*/
+			public static var _showSelectedGroupList:ArrayCollection = new ArrayCollection();
+			
+			/**			存放菜单的集合，			*/
+			public static var _menuList:ArrayCollection = new ArrayCollection();
+			
+			/**			当前显示的菜单页数			*/
+			public static var _selectedPage:Number = 1;
+			
+			/**			分页查询后可显示的总页数			*/
+			public static var _pageSum:Number = 0;
+			
+			/**			菜单页面中的菜单是否初始化完，如果为true，说明初始化完毕，在查询菜单时，不再创建ContentMenu中的菜单			*/
+			private static var _IsContentInitialize:Boolean = false;
+			
+			/**			提交时的等待页面			*/
+			public static var _submitWaitPage:SubmitWaitPage = new SubmitWaitPage();
+			
+			
+// ---------------------		成员函数		---------------------------------------------------------
+												
+			/** 		窗体加载			*/
+			protected function loaded():void
+			{
+				// TODO Auto-generated method stub
+				
+				// 设置对象引用
+				Main._main = this;
+				
+				
+				// 添加子菜单对象到集合中
+				Main._childMenus.push(this.cm1,this.cm2,this.cm3,this.cm4,this.cm5);
+				
+				// 发送请求，获取菜单项目
+				this.menuDao.send();
+				
+				// 发送请求，计算菜单表的总页数
+				this.pageSumDao.send();
+				
+				// 隐藏部分控件
+				this.hidePartialControl();
+				
+				// 设置播放音效的对象的相关属性
+				Main._soundEffect.duration = int.MAX_VALUE;
+				Main._soundEffect.target = this;
+				
+				// 设置控件
+				setTimeout(this.showControl,100);
+				
+			}
+			
+			/**		显示控件			*/
+			private function showControl():void{
+				// 窗体加载完毕之后开始隐藏loading图片
+				this._animateMethod.hideLoading(this.imgLoading);
+				
+				// 等待Loading图片向左移动时，显示控件
+				setTimeout(function():void{
+					// 显示红线，在250毫秒之后
+					_animateMethod.showRedLine(imgRedLine);
+					
+					// 显示下面的版权信息和声音控制文件
+					_animateMethod.showBottomCopyRightAndSoundControl(imgBottom,imgCopyRight,groSoundControl);
+					
+					// 设置书写文字的Image的Source属性
+					imgWrite.visible = true;
+					imgWrite.source = "swf/write.swf";
+										
+				},250);
+				
+				// 显示冒烟的咖啡
+				setTimeout(function():void{
+					// 设置显示冒烟的咖啡的Image的Source属性值，并且移动出来					
+					_animateMethod.showSmokeCoffee(imgSmokeCoffee);
+					
+					// 设置显示标题栏处的菜单
+					_animateMethod.showTitleMenu(titleMenu);
+					
+				},500);
+				
+				// 等待Loading图片完全隐藏之后，将其移出
+				setTimeout(this.removeElement,400,this.imgLoading);
+				
+				// 显示其他内容	，	显示菜单项
+				setTimeout(function():void{
+					// 显示子菜单项
+					_animateMethod.showMenu(_childMenus);
+					
+					// 显示首页的内容的子内容特效
+					_animateMethod.showChildContent(contentHome._groupList);
+					
+				},1800);
+				
+				// 播放背景音乐
+				setTimeout(function():void{
+					// 允许播放声音
+					Main._isPlaySound = true;
+					
+					// 播放背景音乐
+					Main._soundChannel = Main._bgSound.play(Main._soundPlayTime,int.MAX_VALUE);					
+				},1200);
+				
+			}
+			
+			/**		隐藏波分控件，在窗体加载时，现隐藏相关控件，然后在显示			*/
+			private function hidePartialControl():void{
+				// 最上方的红线
+				this.imgRedLine.visible = false;
+				
+				// 书写文字的图片
+				this.imgWrite.visible = false;
+				
+				// 循环隐藏子菜单项
+				for(var i:int = 0 ; i < Main._childMenus.length ; i ++){
+					Main._childMenus[i].visible = false;
+				}
+				
+				// 隐藏冒烟的咖啡图片
+				this.imgSmokeCoffee.visible = false;
+				
+				// 声音控制层
+				this.groSoundControl.visible = false;
+				
+				// 版权信息
+				this.imgCopyRight.visible = false;
+				// 最下面的横条
+				this.imgBottom.visible = false;
+				
+				// 隐藏标题栏处的菜单
+				this.titleMenu.imgHome.visible = false;
+				this.titleMenu.imgNew.visible = false;
+				this.titleMenu.imgOnline.visible = false;
+			}
+			 
+			/**		书写文字的图片，鼠标移入时				*/
+			private function imgWrite_rollOver():void{
+				
+				// 如果标题栏子菜单的被选中向是，主页菜单，就不执行特效
+				if(TitleMenu._selectedMenu == this.titleMenu.imgHome){
+					return;
+				}
+				
+				/* 并且让主页标题菜单显示效果*/
+				this._animateMethod.titleChildMenu_rollOverHandler(this.titleMenu.imgHome);
+			}
+			
+			/**			删除弹出来的窗口				*/
+			public static function removeTitleWindow():void{
+				// 移除窗体
+				PopUpManager.removePopUp(Main._viewAllMenu);
+				PopUpManager.removePopUp(Main._pageMenu);
+			}
+			
+			/**				显示分页查询的菜单的窗口			*/
+			public static function showDataGridViewMenu(title:String):void{
+				
+				// 删除弹出来的窗口
+				Main.removeTitleWindow();
+				
+				// 设置窗口显示的标题文字
+				Main._pageMenu.title = title;
+				
+				// 弹出窗口，并设置居中
+				PopUpManager.addPopUp(Main._pageMenu,Main._main,false);
+				PopUpManager.centerPopUp(Main._pageMenu);
+			}
+			
+			/**	显示弹出来的对话框
+			 * 	@param title:要在窗体显示的标题文字			*/
+			public static function showTitleWindow(title:String):void{
+				// 移除窗体
+//				PopUpManager.removePopUp(Main._viewAllMenu);
+				Main.removeTitleWindow();
+				
+				// 设置窗口显示的标题文字
+				Main._viewAllMenu.title = title;
+				
+				// 弹出窗口，并设置居中
+				PopUpManager.addPopUp(Main._viewAllMenu,Main._main,false);
+				PopUpManager.centerPopUp(Main._viewAllMenu);
+			} 
+			
+			/**			书写文字的flash图片，和主页相关联的图片			*/
+			private function imgWrite_click():void{
+				
+				// 判断当前页是不是首页
+				if(TitleMenu._selectedMenu != null || TitleMenu._selectedMenu == this.titleMenu.imgHome){
+					return;
+				}
+				
+				TitleMenu._selectedMenu = this.titleMenu.imgHome;
+								
+				// 遍历，所有子菜单，还原被选中的对象
+				for(var i:int = 0 ; i < Main._childMenus.length ; i ++){
+					// 判断，是否被选中，如果是选中的，就取消选中
+					if(Main._childMenus[i]._isClick){
+						Main._childMenus[i]._isClick = false;
+						// 还原选中
+						this._animateMethod.rollOutMenu(Main._childMenus[i]);
+					}
+				}
+				
+				// 显示所有内容中的内容层次
+				Main._showSelectedIndex = 0;
+				
+				// 显示首页
+				this._animateMethod.showChildContent(TitleMenu._groupList);
+				
+			}
+			
+			/**			清空程序中的表单			*/
+			private function resetApplicationForms():void{
+				// 还原预约表单
+				this.contentReservation.resetReservationForm();
+				// 还原送餐表单
+				this.contentContact.resetMailingForm();
+			}
+			
+			/**			显示提交等待页面			*/
+			public static function showSubmitWaitPage():void{
+				PopUpManager.removePopUp(Main._submitWaitPage);
+				PopUpManager.addPopUp(Main._submitWaitPage,Main._main,true);
+				PopUpManager.centerPopUp(Main._submitWaitPage);
+//				Alert.show(SubmitWaitPage._waitPageSelectedIndex+"");
+			}
+			
+			
+			
+// ------------------------		事件		----------------------------------------------
+			
+			
+			
+			/**			声音控制图片的移入		*/
+			protected function imgSound_mouseOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				// 鼠标变成手型
+				Mouse.cursor = MouseCursor.BUTTON;
+			}
+
+			/**			声音控制图片的移出		*/
+			protected function imgSound_mouseOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				// 鼠标变成默认的指针型
+				Mouse.cursor = MouseCursor.AUTO;
+			}
+
+			/**			声音控制图片的单击控制声音	*/
+			protected function imgSound_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				// 切换是否播放声音
+				Main._isPlaySound = !Main._isPlaySound;
+				
+				var sound:Image = event.currentTarget as Image;
+				
+				if(Main._isPlaySound){
+					sound.source = "images/soundon.gif";
+					// 继续播放不饿经音乐
+					Main._soundChannel = Main._bgSound.play(Main._soundPlayTime,int.MAX_VALUE);
+				}else{
+					sound.source = "images/soundoff.png";
+					// 记录背景音乐已经播放的进度
+					Main._soundPlayTime = Main._soundChannel.position;
+					// 停止播放背景音乐
+					Main._soundChannel.stop();
+//					SoundMixer.stopAll();
+				}
+			}
+			
+			
+
+			protected function cm1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				if((event.currentTarget as ChildMenu)._isClick){
+					return;
+				}
+				
+				// 清空程序中的表单
+				this.resetApplicationForms();
+				
+				(event.currentTarget as ChildMenu)._isClick=  true;
+				Main._showSelectedIndex = 1;
+								
+				// 显示特效
+				this._animateMethod.showChildContent(this.contentAboutUs._groupList);
+				
+				
+				//Main._showSelectedGroupList = this.contentAboutUs._groupList;
+			}
+
+
+			protected function cm2_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				if((event.currentTarget as ChildMenu)._isClick){
+					return;
+				}
+				(event.currentTarget as ChildMenu)._isClick=  true;
+				Main._showSelectedIndex = 2;
+				
+				// 清空程序中的表单
+				this.resetApplicationForms();
+				
+				this._animateMethod.showChildContent(this.contentMenu._groupList);
+				
+				//Main._showSelectedGroupList = this.contentMenu._groupList;
+				
+			}
+
+
+			protected function cm3_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				if((event.currentTarget as ChildMenu)._isClick){
+					return;
+				}
+				(event.currentTarget as ChildMenu)._isClick=  true;
+				(event.currentTarget as ChildMenu)._isClick=  true;
+				Main._showSelectedIndex = 3;
+				
+				// 清空程序中的表单
+				this.resetApplicationForms();
+				
+				this._animateMethod.showChildContent(this.contentSpecial._groupList);
+				
+				//Main._showSelectedGroupList = this.contentSpecial._groupList;
+				
+			}
+
+
+			protected function cm4_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				if((event.currentTarget as ChildMenu)._isClick){
+					return;
+				}
+				
+				(event.currentTarget as ChildMenu)._isClick=  true;
+				
+				Main._showSelectedIndex = 4;
+				
+				// 清空程序中的表单
+				this.resetApplicationForms();
+				
+				this._animateMethod.showChildContent(this.contentReservation._groupList);
+				
+				//Main._showSelectedGroupList = this.contentReservation._groupList;
+				
+			}
+
+
+			protected function cm5_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				if((event.currentTarget as ChildMenu)._isClick){
+					return;
+				}
+				(event.currentTarget as ChildMenu)._isClick=  true;
+				Main._showSelectedIndex = 5;
+				
+				// 清空程序中的表单
+				this.resetApplicationForms();
+				
+				this._animateMethod.showChildContent(this.contentContact._groupList);
+				
+				//Main._showSelectedGroupList = this.contentContact._groupList;
+				
+			}
+
+
+			protected function vsContent_changeHandler(event:IndexChangedEvent):void
+			{
+				// TODO Auto-generated method stub
+				var index:int = event.oldIndex;
+//				Alert.show(index+"");
+				var list:ArrayCollection = null;
+				
+				switch(index){
+					case 0:
+						list = this.contentHome._groupList;
+						break;
+					case 1:
+						list = this.contentAboutUs._groupList;
+						break;
+					case 2:
+						list = this.contentMenu._groupList;
+						break;
+					case 3:
+						list = this.contentSpecial._groupList;
+						break;
+					case 4:
+						list = this.contentReservation._groupList;
+						break;
+					case 5:
+						list = this.contentContact._groupList;
+						break;
+				}
+				
+//				this._animateMethod.hideChildContent(list);
+				
+			}
+
+
+			protected function menuDao_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Main._menuList = event.result.MenuInfo.Menu;
+				
+				// 设置主页的菜单项目
+				for(var i:int = 0 ; i < ContentHome._menuStrips.length ; i ++){
+					ContentHome._menuStrips[i].titleText = Main._menuList[i].Name;
+					ContentHome._menuStrips[i].price = Main._menuList[i].Price+".00";
+				}
+				
+				// 初始化相关页面中菜单
+//				if (!Main._IsContentInitialize){
+					// 创建菜单页面中的数据行（菜单）
+					this.contentMenu.dgvMenu.createDataGridViewRow();
+					// 初始化ContentSpecial页面中的菜单条
+					this.contentSpecial.InitializeMenuStrip();
+					// 初始化ContentReservation页面中的菜单条
+					this.contentReservation.InitializeMenuStrip();
+					// 初始化PageMenu页面中的菜单
+//					Main._pageMenu.InitializeDataGridViewMenu();
+//				}
+				
+			}
+
+			/**			添加订单失败后，提示信息			*/
+			protected function menuDao_faultHandler(event:FaultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show("Your claim can not send out to go out, HttpService requests failure!\n\n您的请求未能发送出去，HttpService请求失败！\n\nMessageID："+event.messageId,"Coffee");
+			}
+
+			/**			页数统计的请求响应			*/
+			protected function pageSumDao_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Main._pageSum = event.result.PageSum;
+//				Alert.show(event.result.PageSum);
+			}
+
+		]]>
+	</fx:Script>
+
+	
+	<!--	左边	书写文字和主菜单的层			-->
+	<s:Group x="0" y="7" height="653" width="215">		
+		<!--		书写文字的图片		-->
+		<mx:Image id="imgWrite" source="images/write.png" x="39" y="70"/>
+		<mx:Image id="imgWrite2" source="images/write.png" x="39" y="70"
+				  alpha="0" width="166" height="84" buttonMode="true"
+				  rollOver="imgWrite_rollOver();"
+				  click="imgWrite_click();"/>
+		<mx:Image id="imgMenu" source="images/menu.png" x="12" y="191" visible="false"/>
+		<!--		下面是		子菜单			-->
+		<!--		关于我们			-->
+		<view:ChildMenu id="cm1" x="8" y="192"
+						redText="ABOUTOURCAFE" 
+						grayText="about us" 
+						width="175" click="cm1_clickHandler(event)"/>
+		<!--		菜单			-->
+		<view:ChildMenu id="cm2" x="8" y="252" 
+						redText="MENU" 
+						grayText="what we offer" 
+						width="175" click="cm2_clickHandler(event)"/>
+		<!--		专利		-->
+		<view:ChildMenu id="cm3" x="8" y="312"
+						redText="SPECIALS" 
+						grayText="special offers" 
+						width="175" click="cm3_clickHandler(event)"/>
+		<!--		预约		-->
+		<view:ChildMenu id="cm4" x="8" y="372" 
+						redText="RESERVATION" 
+						grayText="make reservation" 
+						width="175" click="cm4_clickHandler(event)"/>
+		<!--		联系		-->
+		<view:ChildMenu id="cm5" x="8" y="432" 
+						redText="CONTACTS" 
+						grayText="mailing address" 
+						width="175" click="cm5_clickHandler(event)"/>
+	</s:Group>
+	
+	<!--		右边显示内容的大层			-->
+	<s:Group x="215" y="7" width="584" height="653">
+		<!--	冒烟的咖啡			-->
+		<mx:Image id="imgSmokeCoffee" x="-85" y="-1" source="images/smokecoffee.png" />
+		<!--	标题菜单			-->
+		<view:TitleMenu id="titleMenu" x="207" y="0"/>
+		
+		<!--		所有右边显示的内容			-->
+		<mx:ViewStack id="vsContent" selectedIndex="{Main._showSelectedIndex}"  change="vsContent_changeHandler(event)" creationPolicy="all">
+			<!--		首页内容			-->
+			<s:NavigatorContent>
+				<view:ContentHome id="contentHome" x="0" y="0" />
+			</s:NavigatorContent>
+			<!--		关于我们			-->
+			<s:NavigatorContent>
+				<view:ContentAboutUs id="contentAboutUs" x="0" y="0" />
+			</s:NavigatorContent>
+			<!--		菜单			-->
+			<s:NavigatorContent>
+				<view:ContentMenu id="contentMenu" x="0" y="0" />
+			</s:NavigatorContent>
+			<!--		专利		-->
+			<s:NavigatorContent>
+				<view:ContentSpecial id="contentSpecial" x="0" y="0" />
+			</s:NavigatorContent>
+			<!--		预约		-->
+			<s:NavigatorContent>
+				<view:ContentReservation id="contentReservation" x="0" y="0" />
+			</s:NavigatorContent>
+			<!--		联系		-->
+			<s:NavigatorContent>
+				<view:ContentContact id="contentContact" x="0" y="0" />
+			</s:NavigatorContent>
+		</mx:ViewStack>
+		
+	</s:Group>
+	
+	<!--		要显示的loading图片			-->
+	<mx:Image id="imgLoading" x="326" y="302" source="images/loading.png" visible="false" />
+	
+	<!--		版权信息	和	声音控制		-->
+	<s:Group x="0" y="658" width="100%" height="60">
+		<mx:Image id="imgBottom" visible="true" source="images/bottom.png" height="100%" width="100%" maintainAspectRatio="false" x="0" y="0"/>
+		<mx:Image id="imgCopyRight" visible="true" source="images/copyright.png" width="216" height="100%" maintainAspectRatio="false" x="0" y="0" />
+		<!--		声音控制			-->
+		<s:Group id="groSoundControl" visible="true" x="680" y="18" width="82" height="20">
+			<s:Label text="Sound" color="#3A403C"  x="2" y="6" fontSize="10"/>
+			<mx:Image id="imgSound" source="images/soundon.gif" x="38" y="0" width="38" height="15" maintainAspectRatio="false" 
+					  mouseOver="imgSound_mouseOverHandler(event)"
+					  mouseOut="imgSound_mouseOutHandler(event)"
+					  click="imgSound_clickHandler(event)"/>
+		</s:Group>
+
+	</s:Group>
+	<!--
+	<s:Label x="208" y="210" text="ABCDEFG" fontWeight="bold" color="#A2080E" fontSize="16"/>
+	-->
+	
+	<!--		最上方的红线		-->
+	<mx:Image id="imgRedLine" x="0" y="1" source="images/redline.png" width="100%" height="6" maintainAspectRatio="false" />
+	
+</s:Group>

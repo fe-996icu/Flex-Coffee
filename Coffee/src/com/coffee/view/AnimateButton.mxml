@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();"
+		 rollOver="group_rollOverHandler(event)"
+		 rollOut="group_rollOutHandler(event)" 
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="116" height="24">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.effects.Fade;
+			import mx.effects.Move;
+			import mx.effects.Sequence;
+			import mx.effects.SoundEffect;
+			
+			
+			
+			
+// ----------------------			全局变量		---------------------------------------
+			
+			/**			所有效果方法的类的实例对象			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			/**			移动红点的对象			*/
+			private var _moveDot:Move = new Move();
+			
+			/**			移动红点2的对象（imgDot2）				*/
+			private var _moveDot2:Move = new Move();
+			
+			/**			移动文本的对象			*/
+			private var _moveLabel:Move = new Move();
+			
+			/**			隐藏显示的对象（使用时，要设置target属性）			*/
+			private var _fade:Fade = new Fade();
+			
+			[Bindable]
+			/**			设置效果按钮的显示文本		*/
+			public var displayText:String = "";
+			
+			private var _dot2X:Number = 0;
+			
+			
+// ----------------------				全局方法			--------------------------------
+			
+			
+			/**			页面中所有元素创建完毕之后，加载设置			*/
+			private function loaded():void{
+				// 设置效果对象
+				this._moveDot.target = this.imgDot;
+				this._moveDot2.target = this.imgDot2;
+				this._moveLabel.target = this.lblDisplayText;
+				
+				// 设置第二个红点的位置
+				this._dot2X = this.lblDisplayText.text.length*7.5;
+			}
+			
+			/**			鼠标移入分组			*/
+			private function group_rollOver():void{
+				
+				// 红点先向左移动
+				this._moveDot.xFrom = 8;
+				this._moveDot.xTo = -5;
+				this._moveDot.duration = 200;
+				this._moveDot.play();
+				
+				// 文字和红点一起先向左移动
+				this._moveLabel.xFrom = 20;
+				this._moveLabel.xTo = 7;
+				this._moveLabel.duration = 200;
+				this._moveLabel.play();
+				
+				// 播放声音
+				if(Main._isPlaySound){
+					Main._soundEffect = new SoundEffect(this);
+					Main._soundEffect.source = "sounds/slide.mp3";
+					Main._soundEffect.play();
+				}
+				
+				// 等文本和红点都移动完之后
+				setTimeout(function():void{
+					// 设置文本颜色
+					lblDisplayText.setStyle("color","#A51A16");
+					// 隐藏	红点	
+					_fade.alphaFrom = 1;
+					_fade.alphaTo = 0;
+					_fade.duration = 200;
+					_fade.target = imgDot;
+					_fade.play();
+					
+					// 再次移动红点，移动到指定地点	x=0
+					_moveDot.xFrom = -5;
+					_moveDot.xTo = 12;
+					_moveDot.duration = 200;
+					_moveDot.play();
+					
+					// 再次移动文本，移动到指定地点	x=12
+					_moveLabel.xFrom = 7;
+					_moveLabel.xTo = 12;
+					_moveLabel.duration = 200;
+					_moveLabel.play();
+					
+					// 等待红点隐藏一 半了
+//					setTimeout(function():void{
+						// 显示第二个红点
+						_fade.alphaFrom = 0.3;
+						_fade.alphaTo = 1;
+						_fade.duration = 100;
+						_fade.target = imgDot2;
+						_fade.play();
+						
+						// 第二个红点向右移动
+//						_moveDot2.xFrom = 75;
+						_moveDot2.xFrom = _dot2X-20;
+//						_moveDot2.xTo = 95;
+						_moveDot2.xTo = _dot2X;
+						_moveDot2.duration = 200;
+						_moveDot2.play();						
+//					},1);
+					
+				},200);
+				
+			}
+						
+			/**			鼠标移出分组			*/
+			private function group_rollOut():void{
+				
+				// 红点2先向右移动
+				this._moveDot2.xFrom = _dot2X;
+				this._moveDot2.xTo = _dot2X+20;
+				this._moveDot2.duration = 200;
+				this._moveDot2.play();
+				
+				// 文字和红点2一起先向右移动
+				this._moveLabel.xFrom = 12;
+				this._moveLabel.xTo = 25;
+				this._moveLabel.duration = 200;
+				this._moveLabel.play();
+				
+				// 等文本和红点2都移动完之后
+				setTimeout(function():void{
+					// 设置文本颜色
+					lblDisplayText.setStyle("color","#3A403C");
+					
+					// 再次移动红点2，移动到指定地点	x=95
+					_moveDot2.xFrom = _dot2X+20;
+					_moveDot2.xTo = _dot2X;
+					_moveDot2.duration = 200;
+					_moveDot2.play();
+					
+					// 隐藏	红点	2
+					_fade.alphaFrom = 1;
+					_fade.alphaTo = 0;
+					_fade.duration = 200;
+					_fade.target = imgDot2;
+					_fade.play();
+					
+					// 再次移动文本，移动到指定地点	x=20
+					_moveLabel.xFrom = 25;
+					_moveLabel.xTo = 20;
+					_moveLabel.duration = 200;
+					_moveLabel.play();
+					
+					// 显示红点
+					_fade.alphaFrom = 0;
+					_fade.alphaTo = 1;
+					_fade.duration = 100;
+					_fade.target = imgDot;
+					_fade.play();
+					
+					// 移动红点到还原位置
+					_moveDot.xFrom = 12;
+					_moveDot.xTo = 8;
+					_moveDot.duration = 200;
+					_moveDot.play();
+										
+				},200);
+				
+			}
+
+			/**				鼠标移入容器		*/
+			protected function group_rollOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.BUTTON;
+				
+				// 鼠标移入容器
+				this.group_rollOver();
+			}
+
+			/**			鼠标移出容器			*/
+			protected function group_rollOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.AUTO;
+				
+				// 鼠标移出的特效
+				this.group_rollOut();
+			}
+
+		]]>
+	</fx:Script>
+	
+	<mx:Image id="imgDot" source="images/dot.png" width="6" height="6" x="8" y="10"/>
+	<s:Label id="lblDisplayText" text="{this.displayText}" x="20" y="8" fontWeight="bold" color="#3A403C"/>
+	<mx:Image id="imgDot2" source="images/dot.png" visible="true" alpha="0" width="6" height="6" x="100" y="10"/>
+</s:Group>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application fontFamily="Tahoma"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   minWidth="955" minHeight="660" 
+			   height="720"
+			   xmlns:view="com.coffee.view.*">
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<view:Main x="225" y="0" >
+		
+	</view:Main>
+	
+	<!--		遮挡的白布			-->
+	<mx:Image width="225" height="100%" source="images/white.png" maintainAspectRatio="false" visible="true" />
+
+</s:Application>

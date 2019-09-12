@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow close="titlewindow_closeHandler(event)"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="316" height="334">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import mx.effects.Fade;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			
+			/**			所有效果方法的类的对象			*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			
+			
+//	-----------------------			事件		------------------------------------------
+			
+			/**			关闭窗体的事件			*/
+			protected function titlewindow_closeHandler(event:CloseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	
+	<!--			点心			-->
+	<mx:Image source="images/dianxin.png"  x="15" y="15"
+			  rollOver="this._animateMethod.rollOver_ImageByFade(event)"
+			  rollOut="this._animateMethod.rollOut_ImageByFade(event)"/>
+	<s:Label x="116" y="17" color="#3A403C"
+				text="Lorem ipsum dolor sit amet, consec tetuer adipiscing elit. Praesent vestibulum molestie lacus. Aenean nonummy hendrerit mauris. Phasellus porta. Fusce suscipit varius mi. Cum sociis natoque penatibus et magnis dis parturient montes.&#xd;" width="181" fontFamily="华文新魏"/>
+	
+	<!--			蛋糕		-->
+	<mx:Image source="images/cake.png" x="15" y="150" 
+			  rollOver="this._animateMethod.rollOver_ImageByFade(event)"
+			  rollOut="this._animateMethod.rollOut_ImageByFade(event)"/>
+	<s:Label x="116" y="152" color="#3A403C" fontFamily="华文新魏"
+			 text="Lorem ipsum dolor sit amet, consec tetuer adipiscing elit. Praesent vestibulum molestie lacus.Aenean nonummy hendrerit mauris. Phasellus porta. Fusce suscipit varius mi. Cum sociis natoque penatibus et magnis dis parturient montesur ridiculus mus." width="181"/>
+</s:TitleWindow>

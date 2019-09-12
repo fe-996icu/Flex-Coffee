@@ -1,0 +1,10 @@
+<!--		验证人数	必须大于1人，小于100人	-->
+		<mx:NumberValidator id="validatePerson" source="{this.txtPartySize}" property="text" minValue="1" maxValue="100" domain="int"/>
+		<!--		验证姓名	必须大于2个字符，小于200个字符		-->
+		<mx:StringValidator source="{this.txtName}" property="text" minLength="2" maxLength="200" />
+		<!--		验证email是否合法			-->
+		<mx:EmailValidator source="{this.txtEmail}" property="text" />
+		<!--		验证电话号码，必须大于11位数字			-->
+		<mx:PhoneNumberValidator source="{this.txtPhone}" property="text" minDigits="11" />
+		<!--		验证输入的信息，必须大于6个字符，小于2000个字符		-->
+		<mx:StringValidator source="{this.txtMessage}" property="text" minLength="6" maxLength="2000"/>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group creationComplete="loaded();" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="353" height="34">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.coffee.method.AnimateMethod;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			
+						
+//	-----------------------		成员字段		--------------------------------------------		
+			
+			
+			/**			所有效果方法的类的实例对象		*/
+			private var _animateMethod:AnimateMethod = new AnimateMethod();
+			
+			/**			获取被选中的标题栏子菜单项			*/
+			public static var _selectedMenu:Image = null;
+			
+			/**				显示效果的集合，每个标题菜单的对象			*/
+			public static var _groupList:ArrayCollection = new ArrayCollection();
+			
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			/**			初始化完毕之后			*/
+			private function loaded():void{
+				TitleMenu._selectedMenu = this.imgHome;
+			}
+			
+			
+//	------------------------		事件		-------------------------------------------
+			
+
+			/**			鼠标移入容器		*/
+			protected function group_rollOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Mouse.cursor = MouseCursor.BUTTON;
+				
+				var childMenu:Group = event.currentTarget as Group;
+				
+				// 获取这个标题子菜单对象
+				var titleChildMenu:Image = childMenu.getElementAt(0) as Image;
+				
+				// 判断，被选中的标题栏子菜单项是否为自己，如果是，就不执行特效
+				if(titleChildMenu == TitleMenu._selectedMenu){
+					return;
+				}
+
+				// 显示效果
+				this._animateMethod.titleChildMenu_rollOverHandler(titleChildMenu);
+				
+			}
+
+			/**			鼠标移出容器时			*/
+			protected function group_rollOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				Mouse.cursor = MouseCursor.AUTO;
+			}
+
+			/**				点击图片的时候，（三个图片）			*/
+			public function image_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				// 判断，显示的子页面是不是首页
+				if(TitleMenu._selectedMenu != null || TitleMenu._selectedMenu == this.imgHome){
+					return;
+				}
+								
+				// 获取这个标题子菜单对象
+				var titleChildMenu:Image = event.currentTarget as Image;
+				// 设置选中的标题栏菜单项为自己
+				TitleMenu._selectedMenu = titleChildMenu;
+				
+				
+				// 遍历，所有子菜单，还原被选中的对象
+				for(var i:int = 0 ; i < Main._childMenus.length ; i ++){
+					// 判断，是否被选中，如果是选中的，就取消选中
+					if(Main._childMenus[i]._isClick){
+						Main._childMenus[i]._isClick = false;
+						// 还原选中
+						this._animateMethod.rollOutMenu(Main._childMenus[i]);
+					}
+				}
+				
+				// 显示所有内容中的内容层次
+				Main._showSelectedIndex = 0;
+				
+				this._animateMethod.showChildContent(TitleMenu._groupList);
+				
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Group height="54" y="-20"
+			 rollOver="group_rollOverHandler(event)" 
+			 rollOut="group_rollOutHandler(event)">
+		<mx:Image id="imgHome" source="images/home1.png"
+				  click="image_clickHandler(event)"/>
+	</s:Group>
+	
+	<s:Group x="118" y="-20"
+			 rollOver="group_rollOverHandler(event)" 
+			 rollOut="group_rollOutHandler(event)">
+		<mx:Image id="imgNew" source="images/new1.png"
+				  click="image_clickHandler(event)"/>
+	</s:Group>
+	
+	<s:Group x="236" y="-20"
+			 rollOver="group_rollOverHandler(event)" 
+			 rollOut="group_rollOutHandler(event)">
+		<mx:Image id="imgOnline" source="images/online1.png"
+				  click="image_clickHandler(event)"/>
+	</s:Group>
+	
+	
+	
+	
+	
+</s:Group>

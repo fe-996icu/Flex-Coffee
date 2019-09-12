@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow styleName="abc" creationComplete="loaded();"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   width="290" height="402"
+			   close="close()"
+			   xmlns:view="com.coffee.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace view "com.coffee.view.*";
+		@namespace spark "mx.skins.spark.*";
+		
+		.abc{
+			border-color : #776F52;
+			title-style-name: "mypanelTitle";
+		}
+		
+		
+		.mypanelTitle {
+			letterSpacing: 2;
+			color: #00cc66;
+		}
+		
+		/**		中间的超链接按钮的样式		*/
+		.label {
+			rollOverColor:#FFFFFF;
+			selectionColor: #FFFFFF;
+			color: #ecb92a;
+			textRollOverColor: #ecb92a;
+			textSelectedColor: #ecb92a;
+			fontWeight: bold;
+			textDecoration: underline;
+		}
+		
+		/**			除了最中间的超链接按钮，都应用此样式			*/
+		.other {
+			rollOverColor: #f0e2b1;
+			selectionColor: #ecb92a;
+			color: #0b333c;
+		}
+		
+	</fx:Style>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:HTTPService id="menuDao" method="POST"
+					   url="http://localhost:8081/Coffee_Web/querymenu.jsp"
+					   result="menuDao_resultHandler(event)" 
+					   fault="menuDao_faultHandler(event)">
+		</s:HTTPService>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			
+//	---------------------		成员函数		-----------------------------------------
+			
+			
+			/**			所有元素创建完毕之后，初始化DataGridView，显示菜单				*/
+			private function loaded():void{
+				this.InitializeDataGridViewMenu();
+				
+				// 设置控件激活状态
+				this.setControlsEnabled();
+			}
+			
+			/**			初始化DataGridView，重新填充数据行，（菜单）				*/
+			public function InitializeDataGridViewMenu():void{
+				// 删除所有菜单项目
+				this.dgvPageMenu.removeAllElements();
+				
+				// 移动隐藏数据行，之后在删除
+//				this.dgvPageMenu.hideDateGridViewRow();
+				
+				// 再次创建数据行（菜单）
+				this.dgvPageMenu.createDataGridViewRow();
+				
+			}
+			
+			/**			HttpService发送服务（this.menuDao）		*/
+			private function httpServiceSend():void{
+				// 构建参数，分页查询的页数
+				var obj:Object = new Object();
+				obj.selectedPage = Main._selectedPage;
+				
+				// 发送请求，等待获取菜单
+				this.menuDao.send(obj);
+				
+				
+				this.setControlsEnabled();
+								
+			}
+			
+			/**			设置控件是否可以使用			*/
+			private function setControlsEnabled():void{
+				// 先设置所有连接可用
+				this.abPrev.enabled = true;
+				this.abNext.enabled = true;
+				this.lnkFirst.enabled = true;
+				this.lnkL1.visible = true;
+				this.lnkL2.visible = true;
+				this.lnkCenter.visible = true;
+				this.lnkR1.visible = true;
+				this.lnkR2.visible = true;
+				this.lnkLast.enabled = true;
+				
+				// 设置每个标签显示的文字(可选页码数)
+				this.lnkL1.label = (Main._selectedPage-2).toString();
+				this.lnkL2.label = (Main._selectedPage-1).toString();
+				this.lnkCenter.label = Main._selectedPage.toString();
+				this.lnkR1.label = (Main._selectedPage+1).toString();
+				this.lnkR2.label = (Main._selectedPage+2).toString();
+				
+				
+				// 如果，已经到了第一页，就禁止在往上一页查找
+				if(Main._selectedPage <= 1){
+					// 设置页数最小保持在第一页
+					Main._selectedPage = 1;
+					
+					// 设置一些控件禁用
+					this.abPrev.enabled = false;
+					this.lnkFirst.enabled = false;
+					this.lnkL1.visible = false;
+					this.lnkL2.visible = false;
+				}
+				
+				if(Main._selectedPage <= 2){
+					this.lnkL1.visible = false;
+				}
+				
+				if(Main._selectedPage >= Main._pageSum){
+					this.abNext.enabled = false;
+					this.lnkLast.enabled = false;
+					this.lnkR1.visible = false;
+					this.lnkR2.visible = false;
+				}
+				
+				if(Main._selectedPage >= Main._pageSum-1){
+					this.lnkR2.visible = false;
+				}
+			}
+			
+			/**			上一页菜单			*/
+			private function prevMenu():void{
+				Main._selectedPage--;
+				
+				// 发送请求
+				this.httpServiceSend();
+			}
+			
+			/**			下一页菜单			*/
+			private function nextMenu():void{
+				Main._selectedPage++;
+				
+				// 发送请求
+				this.httpServiceSend();
+			}
+			
+			/**			关闭自己		*/
+			protected function close():void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+
+			
+//	--------------------------		事件		-------------------------------------------
+			
+			
+			/**			HttpService请求，得到响应，		*/
+			protected function menuDao_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				var len:int = event.result.MenuInfo.Menu.length;
+				// 保存查询回来的结果，菜单集合（分页查询出来的12条菜单）
+				if(len == 0){
+					Main._menuList.removeAll();
+					Main._menuList.addItem(event.result.MenuInfo.Menu);
+				} else {
+					Main._menuList = event.result.MenuInfo.Menu;
+				}
+//				Alert.show("++"+len+"++"+event.result.MenuInfo.Menu.length);
+				// 重新加载菜单项
+				this.InitializeDataGridViewMenu();
+				
+			}
+
+			/**			添加订单失败后，提示信息			*/
+			protected function menuDao_faultHandler(event:FaultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show("Your claim can not send out to go out, HttpService requests failure!\n\n您的请求未能发送出去，HttpService请求失败！\n\nMessageID："+event.messageId,"Coffee");
+			}
+			
+			/**			超链接按钮，跳转到指定页面			*/
+			private function pageNum_Click(event:MouseEvent):void{
+				// 获取当前事件点击的对象(超链接按钮)
+				var lnk:LinkButton = event.currentTarget as LinkButton;
+				
+				// 判断，点击的是首页，还是尾页，还是其他页
+				if(lnk == this.lnkFirst){
+					Main._selectedPage = 1;
+				}else if(lnk == this.lnkLast){
+					Main._selectedPage = Main._pageSum;
+				}else{
+					// 获取标签上的页码
+					var pageNum:int = parseInt(lnk.label);
+					
+					// 如果，转换成功，就跳转到选中页面中
+					if(pageNum > 0){
+						// 设置选中页码
+						Main._selectedPage = pageNum;
+					}
+				}
+				
+				// 发送请求，获取菜单
+				this.httpServiceSend();
+				
+			}
+
+		]]>
+	</fx:Script>
+	
+	<mx:Image source="images/menuBG.png" width="270" height="70" x="10" y="295" visible="false" maintainAspectRatio="false" />
+	
+	<!---		显示菜单的容器			-->
+	<view:DataGridView id="dgvPageMenu"  x="11" y="0">
+	</view:DataGridView>
+	
+	<!--		上一页，和	下一页		按钮		-->
+	<view:AnimateButton id="abPrev" displayText=" prev  " x="142" y="328" click="prevMenu();"/>
+	<view:AnimateButton id="abNext" displayText=" next  "  x="206" y="328" click="nextMenu();"/>
+	
+	<!--		导航按钮			-->
+	<mx:LinkButton id="lnkFirst" x="8" y="295" label="first" click="pageNum_Click(event);" styleName="other"/>
+	<mx:LinkButton id="lnkL1" x="51" y="295" label="-2" click="pageNum_Click(event);" styleName="other"/>
+	<mx:LinkButton id="lnkL2" x="89" y="295" label="-1" click="pageNum_Click(event);" styleName="other"/>
+	<!--<mx:Image source="images/currpageBG.png" 
+			  width="28" height="20" maintainAspectRatio="false" 
+			  x="131" y="295" />-->
+	<mx:LinkButton  id="lnkCenter" x="131" y="295" label="1" styleName="label"/>
+	<mx:LinkButton id="lnkR1" x="169" y="295" label="2" click="pageNum_Click(event);" styleName="other"/>
+	<mx:LinkButton id="lnkR2" x="206" y="295" label="3" click="pageNum_Click(event);" styleName="other"/>
+	<mx:LinkButton id="lnkLast" x="241" y="295" label="last" click="pageNum_Click(event);" styleName="other"/>
+	
+</s:TitleWindow>

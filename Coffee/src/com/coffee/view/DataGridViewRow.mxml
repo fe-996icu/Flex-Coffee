@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group buttonMode="true"
+		 rollOver="group_rollOverHandler(event)" 
+		 rollOut="group_rollOutHandler(event)" 
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="268" height="22"
+		 color="#3A403C">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import mx.effects.SoundEffect;
+			
+			
+//	-----------------------		成员字段		--------------------------------------------
+			
+			[Bindable]
+			/**			要显示的菜单名称				*/
+			public var menuName:String = "";
+			
+			[Bindable]
+			/**			要显示的菜系价格			*/
+			public var price:String = "02.00";
+			
+			
+			
+//	-----------------------		事件		--------------------------------------------
+			
+			
+			/**		鼠标移入时，背景发白			*/
+			protected function group_rollOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.imgBG.alpha = 0.8;
+
+				// 播放声音
+				if(Main._isPlaySound){
+					Main._soundEffect = new SoundEffect(this.imgBG);
+					Main._soundEffect.source = "sounds/slide.mp3";
+					Main._soundEffect.play();
+				}
+			}
+
+			/**		鼠标移出时，背景还原			*/
+			protected function group_rollOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				this.imgBG.alpha = 1;
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<!--		背景图片			-->
+	<mx:Image id="imgBG" source="images/datagridviewrow1.png" width="268" height="22" />
+
+	<!--		菜单显示的名称		-->
+	<s:Label x="8" y="6" text="{this.menuName}"/>
+	<!--		菜系的价格			-->
+	<s:Label x="220" y="6" text="${this.price}"/>
+	
+</s:Group>
